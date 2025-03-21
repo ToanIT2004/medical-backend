@@ -2,8 +2,9 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
+Route::group(['prefix' => 'admin', 'middleware' => ['role:admin']], function () {
+    Route::get('/', 'AdminController@welcome');
+    Route::get('/manage', ['middleware' => ['permission:manage-admins'], 'uses' => 'AdminController@manageAdmins']);
 });
 
 
