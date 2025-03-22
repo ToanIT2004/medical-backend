@@ -5,13 +5,23 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
     public function index()
     {
 
-        $users = User::latest()->get();
+        $users = User::latest()->get()->map(function ($user) {
+            return [
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'sku' => $user->sku,
+                'role' => $user->roles->pluck('name')->toArray(), // Lấy danh sách tên role
+                'permission' => [], // Nếu bạn cần thêm permissions sau này
+            ];
+        });
         return response()->json([
             'success' => true,
             'data' => $users,
@@ -33,13 +43,18 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string',
             'email' => 'required|email|unique:users',
-            'password' => 'required|min:6'
+            'password' => 'required|min:6',
+            'phone' => 'required|digits:10|regex:/^[0-9]{10}$/|unique:users,phone',
         ], [
             'name.required' => "Tên không được để trống",
             'email.required' => "Email không được để trống",
             'email.email' => 'Email không hợp lệ.',
             'email.unique' => 'Email đã tồn tại.',
             'password.min' => 'Mật khẩu phải có ít nhất :min ký tự.',
+            'phone.required' => 'Số điện thoại không được để trống.',
+            'phone.digits' => 'Số điện thoại phải có đúng 10 số.',
+            'phone.regex' => 'Số điện thoại chỉ được chứa số từ 0-9.',
+            'phone.unique' => 'Số điện thoại này đã tồn tại.',
         ]);
 
         // Nếu có lỗi validation, trả về response tùy chỉnh
@@ -53,6 +68,9 @@ class UserController extends Controller
 
         // Lấy dữ liệu đã validated
         $validatedData = $validator->validated();
+
+        // Tạo mã SKU tự động
+        $validatedData['sku'] = 'TRU-' . strtoupper(Str::random(8));
 
         // Tạo user
         $user = User::create($validatedData);
@@ -83,7 +101,14 @@ class UserController extends Controller
         return response()->json(
             [
                 'success' => true,
-                'data' => $user,
+                'data' => [
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                    'sku' => $user->sku,
+                    'role' => $user->roles->pluck('name')->toArray(), // Lấy danh sách tên role
+                    'permission' => []
+                ],
                 'message' => 'User retrieved successfully',
             ],
         );
@@ -114,13 +139,18 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|required|string',
             'email' => 'sometimes|required|email|unique:users,email,' . $id,
-            'password' => 'sometimes|required|min:6'
+            'password' => 'sometimes|required|min:6',
+            'phone' => 'sometimes|digits:10|regex:/^[0-9]{10}$/|unique:users,phone,' . $id,
         ], [
             'name.required' => 'Tên không được để trống.',
             'email.required' => 'Email không được để trống.',
             'email.email' => 'Email không hợp lệ.',
             'email.unique' => 'Email đã tồn tại.',
             'password.min' => 'Mật khẩu phải có ít nhất :min ký tự.',
+            'phone.required' => 'Số điện thoại không được để trống.',
+            'phone.digits' => 'Số điện thoại phải có đúng 10 số.',
+            'phone.regex' => 'Số điện thoại chỉ được chứa số từ 0-9.',
+            'phone.unique' => 'Số điện thoại này đã tồn tại.',
         ]);
 
         // Nếu có lỗi validation, trả về response tùy chỉnh

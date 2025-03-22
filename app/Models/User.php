@@ -23,6 +23,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'sku',
+        'phone',
     ];
 
     /**
@@ -51,16 +53,6 @@ class User extends Authenticatable
 
     public function roles()
     {
-        return $this->belongsToMany(Role::class, 'role_user');
-    }
-
-    public function hasRolePermission($permission): bool
-    {
-        foreach ($this->roles as $role) {  // Lấy danh sách roles từ bảng role_user
-            if ($role->hasPermission($permission)) {
-                return true;
-            }
-        }
-        return false;
+        return $this->belongsToMany(Role::class, 'role_user', 'user_id', 'role_id');
     }
 }

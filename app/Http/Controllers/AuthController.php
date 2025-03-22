@@ -14,7 +14,7 @@ class AuthController extends Controller
         if (!$email || !$password) {
             return response()->json([
                 'success' => false,
-                'message' => 'Vui lòng nhập đầy đủ email hoặc mật khẩu'
+                'message' => 'Enter your email or password'
             ], 400);
         }
         $status = Auth::attempt([
@@ -23,18 +23,27 @@ class AuthController extends Controller
         ]);
         if ($status) {
             // Tạo token
-            $token = $request->user()->createToken('auth');
+            $user = Auth::user(); // Lấy thông tin user đang đăng nhập
+            $token = $user->createToken('auth')->plainTextToken; // Tạo token
 
             return response()->json([
                 'success' => true,
-                'token' => $token->plainTextToken,
-                'message' => "Đăng nhập thành công"
+                'data' => [
+                    'token' => $token,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                    'sku' => $user->sku,
+                    'role' => $user->roles->pluck('name')->toArray(), // Lấy danh sách tên role
+                    'permission' => []
+                ],
+                'message' => "User login successfully"
             ]);
         }
 
         return response()->json([
             'success' => false,
-            'message' => "Email hoặc mật khẩu không chính xác"
+            'message' => "Email or password invalid"
         ]);
     }
 
