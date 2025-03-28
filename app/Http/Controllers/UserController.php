@@ -14,6 +14,7 @@ class UserController extends Controller
 
         $users = User::latest()->get()->map(function ($user) {
             return [
+                'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
                 'phone' => $user->phone,
@@ -102,6 +103,7 @@ class UserController extends Controller
             [
                 'success' => true,
                 'data' => [
+                    'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
                     'phone' => $user->phone,
